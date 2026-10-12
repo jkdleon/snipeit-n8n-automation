@@ -38,8 +38,6 @@ When IT checks a laptop or phone out (or back in) in **Snipe-IT**, this project 
 |---|---|
 | [`docs/case-study.md`](docs/case-study.md) | The write-up: problem, architecture, decisions, testing, limitations |
 | [`docs/notes.md`](docs/notes.md) | Full build log, including every mistake and dead end |
-| [`docs/superpowers/specs/`](docs/superpowers/specs/) | Design specs for each phase |
-| [`docs/superpowers/plans/`](docs/superpowers/plans/) | Step-by-step implementation plans |
 | [`docs/gui-build/`](docs/gui-build/) | Server config (Docker Compose, Caddyfile, env example) for the n8n Cloud version; [`self-hosted/`](docs/gui-build/self-hosted/) holds the version in progress |
 | [`n8n/workflows/`](n8n/workflows/) | Exported n8n workflows (n8n Cloud version) |
 | [`n8n/config.md`](n8n/config.md), [`n8n/samples/`](n8n/samples/) | Documenso template and field IDs; sample Snipe-IT webhook payloads |

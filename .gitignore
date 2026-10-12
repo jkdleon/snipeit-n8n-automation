@@ -18,3 +18,8 @@ crash.*.log
 *.srl
 *.p12
 *.pfx
+
+# AI assistant working files (design specs and plans stay local)
+.claude/
+.superpowers/
+docs/superpowers/

@@ -162,7 +162,7 @@ Raw notes captured during the build, used as source material for the case study.
 
 ## Self-hosted n8n build log
 
-Spec: `docs/superpowers/specs/2026-10-12-self-hosted-n8n-design.md`. Plan: `docs/superpowers/plans/2026-10-12-self-hosted-n8n.md`.
+Goal: run the same four workflows on n8n self-hosted next to Snipe-IT, with every system on Asia/Qatar time, and compare the result with the n8n Cloud + mTLS version on measured evidence (setup effort, attack surface, operations, cost, fit with Terraform).
 
 ### Sizing baseline (2026-10-12)
 - Fresh boot, before n8n: 308 MiB used of 1.9 GiB, 1.4 GiB available, no swap. `snipeit-app-1` 96.8 MiB, `snipeit-caddy-1` 13.3 MiB (screenshot 33). Decision: keep the t3.small and add swap.
