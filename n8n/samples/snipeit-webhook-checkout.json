@@ -1,0 +1,16 @@
+{
+  "text": ":arrow_up: :computer: Asset checked out: ",
+  "channel": "#IT-OPS",
+  "username": "Snipe-N8n",
+  "attachments": [
+    {
+      "title": " #00001 - Dell Latitude 5450",
+      "title_link": "https://snipeit.jkdeleon.net/hardware/1",
+      "fields": [
+        { "title": "To", "value": "<https://snipeit.jkdeleon.net/users/2|Alice>", "short": true },
+        { "title": "By", "value": "<https://snipeit.jkdeleon.net/users/1|James Kyle De Leon>", "short": true },
+        { "title": "Company", "value": "Test Company", "short": true }
+      ]
+    }
+  ]
+}

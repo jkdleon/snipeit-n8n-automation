@@ -1,0 +1,20 @@
+# Secrets
+.env
+*.tfvars
+!*.tfvars.example
+
+# Terraform state and working files
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl.bak
+crash.log
+crash.*.log
+*.tfplan
+
+# Certificates and keys
+*.key
+*.csr
+*.srl
+*.p12
+*.pfx

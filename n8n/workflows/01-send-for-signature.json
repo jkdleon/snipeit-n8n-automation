@@ -1,0 +1,413 @@
+{
+  "name": "01 Send for signature",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "6f2c0ea8-e5fa-4703-a029-2b380ad9443b",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "037808f3-015b-4e58-a18f-29d674a599eb",
+      "name": "Webhook",
+      "webhookId": "6f2c0ea8-e5fa-4703-a029-2b380ad9443b"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || {};\nconst text = body.text || '';\nconst att = (body.attachments || [])[0] || {};\n\nlet type = null;\nif (text.includes('Asset checked out')) type = 'checkout';\nelse if (text.includes('Asset checked in')) type = 'checkin';\n\nconst assetMatch = (att.title_link || '').match(/\\/hardware\\/(\\d+)/);\nif (!type || !assetMatch) return [];\n\nconst toField = (att.fields || []).find(f => f.title === 'To');\nconst toMatch = toField ? String(toField.value).match(/\\/users\\/(\\d+)/) : null;\n\nreturn [{ json: {\n  type,\n  assetId: Number(assetMatch[1]),\n  webhookUserId: toMatch ? Number(toMatch[1]) : null,\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "1804b2e3-6912-49eb-87f0-4646e6078436",
+      "name": "Parse event"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ev = $('Parse event').first().json;\nconst log = ($input.first().json.rows || [])[0];\nconst expected = ev.type === 'checkout' ? 'checkout' : 'checkin from';\n\nif (!log || log.action_type !== expected) return [];\nif (!log.target || log.target.type !== 'user') return [];\nif (ev.type === 'checkout' && log.target.id !== ev.webhookUserId) return [];\nif (!log.created_by) return [];\n\nreturn [{ json: {\n  ...ev,\n  userId: log.target.id,\n  adminId: log.created_by.id,\n  logId: log.id,\n  externalId: `${ev.type}:asset-${ev.assetId}:log-${log.id}`,\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ],
+      "id": "fb61c07b-5c4c-4ece-b4cf-5a0ed405343f",
+      "name": "Verify event"
+    },
+    {
+      "parameters": {
+        "url": "=https://snipeit-api.jkdeleon.net/api/v1/reports/activity?item_type=asset&item_id={{ $json.assetId }}&action_type={{ encodeURIComponent($json.type === 'checkout' ? 'checkout' : 'checkin from') }}&limit=1&order=desc&sort=created_at",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "provideSslCertificates": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        0
+      ],
+      "id": "c29cb2c0-cc61-48fa-b708-61b86cea9258",
+      "name": "Latest activity",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jcgBAcpWqmxk2SN8",
+          "name": "Snipe-IT n8n Token"
+        },
+        "httpSslAuth": {
+          "id": "aQZIyqoKefpcNZke",
+          "name": "SSL Certificates account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://app.documenso.com/api/v2/envelope?type=DOCUMENT&perPage=100&orderByColumn=createdAt&orderByDirection=desc",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        896,
+        0
+      ],
+      "id": "e79d70c0-bc39-4fac-bbc9-8cfa70af622b",
+      "name": "Recent envelopes",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "aZJg5XnGZxLEFQGL",
+          "name": "Documenso API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://snipeit-api.jkdeleon.net/api/v1/hardware/{{ $('Skip duplicates').first().json.assetId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "provideSslCertificates": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1344,
+        0
+      ],
+      "id": "c86d3bcc-dc95-4da8-ab63-eecd5bb35840",
+      "name": "Get asset",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jcgBAcpWqmxk2SN8",
+          "name": "Snipe-IT n8n Token"
+        },
+        "httpSslAuth": {
+          "id": "aQZIyqoKefpcNZke",
+          "name": "SSL Certificates account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ev = $('Verify event').first().json;\nconst envelopes = $input.first().json.data || [];\nif (envelopes.some(e => e.externalId === ev.externalId)) return [];\nreturn [{ json: ev }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "364103de-9de6-482d-ae60-546d4af7ede5",
+      "name": "Skip duplicates"
+    },
+    {
+      "parameters": {
+        "url": "=https://snipeit-api.jkdeleon.net/api/v1/users/{{ $('Skip duplicates').first().json.userId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "provideSslCertificates": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1536,
+        0
+      ],
+      "id": "1abbc5ff-5851-4292-ac64-1e75a10c0dc0",
+      "name": "Get user",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jcgBAcpWqmxk2SN8",
+          "name": "Snipe-IT n8n Token"
+        },
+        "httpSslAuth": {
+          "id": "aQZIyqoKefpcNZke",
+          "name": "SSL Certificates account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://snipeit-api.jkdeleon.net/api/v1/users/{{ $('Skip duplicates').first().json.adminId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "provideSslCertificates": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1728,
+        0
+      ],
+      "id": "12a1d251-c248-483c-a3f3-0c3cb569496a",
+      "name": "Get admin",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jcgBAcpWqmxk2SN8",
+          "name": "Snipe-IT n8n Token"
+        },
+        "httpSslAuth": {
+          "id": "aQZIyqoKefpcNZke",
+          "name": "SSL Certificates account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const CONFIG = {\n  checkout: { envelopeId: 'envelope_bevvhdbxmyucxmvz', employeeRecipientId: 3709840, itRecipientId: 3709839,\n    fields: { asset_tag: 18376052, asset_model: 18376054, asset_serial: 18376053, event_date: 18376055 } },\n  checkin:  { envelopeId: 'envelope_vebezsuleweowkaf', employeeRecipientId: 3709844, itRecipientId: 3709845,\n    fields: { asset_tag: 18375984, asset_model: 18375985, asset_serial: 18375986, event_date: 18375987 } },\n};\n\nconst ev = $('Skip duplicates').first().json;\nconst asset = $('Get asset').first().json;\nconst user = $('Get user').first().json;\nconst admin = $('Get admin').first().json;\nconst cfg = CONFIG[ev.type];\n\nif (!user.email) throw new Error(`Employee ${user.name} (id ${user.id}) has no email in Snipe-IT`);\nif (!admin.email) throw new Error(`IT admin ${admin.name} (id ${admin.id}) has no email in Snipe-IT`);\n\nconst today = new Date().toISOString().slice(0, 10);\nconst values = {\n  asset_tag: asset.asset_tag,\n  asset_model: asset.model?.name ?? '',\n  asset_serial: asset.serial ?? '',\n  event_date: today,\n};\n\nconst payload = {\n  envelopeId: cfg.envelopeId,\n  externalId: ev.externalId,\n  distributeDocument: true,\n  recipients: [\n    { id: cfg.employeeRecipientId, email: user.email, name: user.name, signingOrder: 1 },\n    { id: cfg.itRecipientId, email: admin.email, name: admin.name, signingOrder: 2 },\n  ],\n  prefillFields: Object.entries(cfg.fields).map(([key, id]) => ({ id, type: 'text', value: String(values[key]) })),\n  override: {\n    title: `${ev.type === 'checkout' ? 'Asset Assignment' : 'Asset Return'} – ${asset.asset_tag} – ${user.name}`,\n  },\n};\n\nreturn [{ json: { ...ev, assetTag: asset.asset_tag, employeeName: user.name, payloadJson: JSON.stringify(payload) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        192
+      ],
+      "id": "088becfd-cb5c-4b99-8abc-d9847876c85a",
+      "name": "Build envelope payload"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.documenso.com/api/v2/envelope/use",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "payload",
+              "value": "={{ $json.payloadJson }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        240,
+        192
+      ],
+      "id": "e0164c76-635f-48b8-afe2-809e13291a99",
+      "name": "Create document",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "aZJg5XnGZxLEFQGL",
+          "name": "Documenso API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://snipeit-api.jkdeleon.net/api/v1/notes/{{ $('Build envelope payload').first().json.assetId }}/store",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "provideSslCertificates": true,
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "note",
+              "value": "=Agreement sent to {{ $('Build envelope payload').first().json.employeeName }} for signature (Documenso). Awaiting employee, then IT."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        464,
+        192
+      ],
+      "id": "3b5761b8-952f-444f-a587-0a33f866380b",
+      "name": "Note: sent",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jcgBAcpWqmxk2SN8",
+          "name": "Snipe-IT n8n Token"
+        },
+        "httpSslAuth": {
+          "id": "aQZIyqoKefpcNZke",
+          "name": "SSL Certificates account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse event": {
+      "main": [
+        [
+          {
+            "node": "Latest activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Latest activity": {
+      "main": [
+        [
+          {
+            "node": "Verify event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify event": {
+      "main": [
+        [
+          {
+            "node": "Recent envelopes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recent envelopes": {
+      "main": [
+        [
+          {
+            "node": "Skip duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get asset": {
+      "main": [
+        [
+          {
+            "node": "Get user",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip duplicates": {
+      "main": [
+        [
+          {
+            "node": "Get asset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get user": {
+      "main": [
+        [
+          {
+            "node": "Get admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get admin": {
+      "main": [
+        [
+          {
+            "node": "Build envelope payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build envelope payload": {
+      "main": [
+        [
+          {
+            "node": "Create document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create document": {
+      "main": [
+        [
+          {
+            "node": "Note: sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "J6QR77Zyw8EC62Qp",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "0ecc9398-61de-49cd-8893-7a1c57d7880a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "188c88f293414949c4fb3c22da51afea83795f9822a7ae90fbe68e738aaf1768"
+  },
+  "nodeGroups": [],
+  "id": "PE908q6nSclg5ydU",
+  "tags": []
+}

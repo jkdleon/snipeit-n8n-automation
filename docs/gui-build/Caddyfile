@@ -1,0 +1,20 @@
+snipeit.jkdeleon.net {
+	@not_admin not remote_ip {$ADMIN_IP}
+	respond @not_admin "Forbidden" 403
+	reverse_proxy app:80
+}
+
+snipeit-api.jkdeleon.net {
+	tls {
+		client_auth {
+			mode require_and_verify
+			trust_pool file /etc/caddy/ca/n8n-ca.crt
+		}
+	}
+	handle /api/* {
+		reverse_proxy app:80
+	}
+	handle {
+		respond "Not Found" 404
+	}
+}

@@ -1,0 +1,40 @@
+services:
+  app:
+    image: snipe/snipe-it:${APP_VERSION:-latest}
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - storage:/var/lib/snipeit
+      - ./rds-ca/global-bundle.pem:/etc/ssl/rds/global-bundle.pem:ro
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:2.42.7
+    restart: unless-stopped
+    env_file:
+      - n8n.env
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      ADMIN_IP: ${ADMIN_IP}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./ca:/etc/caddy/ca:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+      - n8n
+
+volumes:
+  storage:
+  n8n_data:
+  caddy_data:
+  caddy_config:
