@@ -280,7 +280,9 @@ sudo sysctl -p /etc/sysctl.d/99-swappiness.conf
 
 - The real test email address was replaced in all text files and exported workflows with the placeholder `it-admin@example.com` (plus-addresses as `it-admin+<name>@example.com`). `example.com` is reserved for documentation, so it can't belong to anyone. Re-importing a workflow means setting the real IT inbox again (Workflow 2's rejection fallback, Workflows 3 and 4's "To" field).
 - Screenshots showing the address (`26`, `29a`, `29b`, `30c`, `31`) were pixelated over just the address.
-- **Git history still contains the original address** (earlier commits of these files and the unblurred images). Before pushing to a public remote, publish with fresh history (e.g. one squashed initial commit on a new branch) or rewrite it, so old commits don't reveal it.
+- **Published with fresh history (2026-10-13):** https://github.com/jkdleon/snipeit-n8n-automation (public). `main` was replaced by a single starting commit with the current, clean files. The full earlier history (which still contains the original address and unblurred images) is kept in the local-only branch `private-history`, set to push to a non-existent remote (`branch.private-history.pushRemote=no-push`) so it can't be pushed by accident.
+- Commits in this repo use the GitHub no-reply address as author email (repo-local `git config user.email`), so no personal email appears in public commit data.
+- Before each push: `git grep -I gmail.com` returns nothing, and new screenshots are reviewed.
 
 ## Open items
 
