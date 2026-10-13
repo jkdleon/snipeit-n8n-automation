@@ -201,6 +201,10 @@ Goal: run the same four workflows on n8n self-hosted next to Snipe-IT, with ever
 - **Review Focus 2 passed:** after `docker compose up -d --force-recreate n8n` (new container, created about a minute earlier), the `Snipe-IT n8n Token` credential still decrypted and the call returned the same result. The key comes from `n8n.env`, not from a file n8n generates inside the container, so recreates and upgrades keep the credentials readable.
 - **Next (resume here):** Task 4 Step 6, the `Documenso API` credential (raw token, no `Bearer`) and `GET https://app.documenso.com/api/v2/envelope?type=DOCUMENT&perPage=10` → note the envelope IDs and statuses of #2 (COMPLETED, check-in) and #3 (REJECTED). Then Step 7 (admin-IP lockout drill), Step 8 (phone tests 2a/2b), Step 9 (log).
 
+### Google app published (2026-10-14)
+- Built the two pages Google requires on the authorized domain, in the portfolio site repo (`website-portfolio`, PR #7): `https://jkdeleon.net/projects/snipeit-automation` (project page, also listed in the portfolio's projects) and `https://jkdeleon.net/projects/snipeit-automation/privacy` (what Drive and Gmail data the app uses, Limited Use statement, how to remove access, contact).
+- Branding updated with both links, then **Publish app → In production** (unverified). It was done **before** connecting Drive and Gmail in n8n, so no login was ever issued under Testing: the 7-day expiry never applies and there's nothing to reconnect (plan Task 9 Step 0 is already satisfied).
+
 ### Time log
 | Session | Date | Tasks | Minutes |
 |---|---|---|---|
