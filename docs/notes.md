@@ -207,6 +207,9 @@ Goal: run the same four workflows on n8n self-hosted next to Snipe-IT, with ever
 ### Google credentials in n8n (Task 5, 2026-10-13)
 - `Google Drive account` and `Gmail account`: Google OAuth2 credentials using the own OAuth client. n8n showed the expected redirect URL. Sign-in went through Google's "unverified app" warning once (screenshot 38, email blurred).
 - Drive: searching inside the archive root folder returned the `00001` folder (right account, right folder). Gmail: a test message from "IT Asset Automation" arrived in the IT inbox.
+- **Task 6 mistake: the n8n Cloud files were imported instead of the self-hosted ones.** Test 3 caught it. `Get asset` still called `https://snipeit-api.jkdeleon.net/...`, and n8n had auto-filled the wrong credential (`Documenso API` on a Snipe-IT node) because the credential IDs in the Cloud exports didn't exist on the new instance. The Documenso token was never sent: Caddy refused the TLS handshake (`alert certificate required`) before any HTTP request. That's live proof the mTLS gate still works. Lessons: check the source folder in the file picker, and check each credential **by name**, not just whether the field is red.
+- The same run showed the WF1 timezone edit working: `eventDate: 2026-10-13` for a log entry stamped 00:15 Qatar (21:15 UTC the day before). The edits were then added to `n8n/workflows-self-hosted/01-send-for-signature.json`, so the re-import keeps them.
+- **Resume here (next session):** in n8n, delete the wrongly imported `01`/`02`/`03` (keep `04`, already published, identical in both folders). Re-import 01–03 from `n8n/workflows-self-hosted/`. Check every credential by name, set the error workflow to `04 Error handler`, and restore the real IT inbox (WF2 `Rejection details`, WF3 Gmail To). Check `Get asset` reads `http://app/...`. Redo the Test 3 pins and run `Build envelope payload` → expect `2026-10-13` and `"timezone":"Asia/Qatar"` in `payloadJson`. Then Task 7 Steps 4–7 (WF2 `Parse externalId`, WF3 `Overdue`).
 - n8n's Google credential form also offers "Allowed HTTP Request Domains" (default All) and "Custom Scopes". Both are possible hardening steps: limit the token to Google API domains, and request narrower scopes.
 - **Earlier resume point (done):** Task 4 Step 6, the `Documenso API` credential (raw token, no `Bearer`) and `GET https://app.documenso.com/api/v2/envelope?type=DOCUMENT&perPage=10` → note the envelope IDs and statuses of #2 (COMPLETED, check-in) and #3 (REJECTED). Then Step 7 (admin-IP lockout drill), Step 8 (phone tests 2a/2b), Step 9 (log).
 
@@ -223,7 +226,7 @@ Goal: run the same four workflows on n8n self-hosted next to Snipe-IT, with ever
 | 2 | 2026-10-12 | Task 3 (DNS, n8n container, Caddy, timezone) | ~15 |
 | 2 | 2026-10-12 | Task 4 Steps 1–5 (owner account, Snipe-IT credential, internal API, recreate test) | ~20 |
 
-| 3 | 2026-10-13 (Qatar) | Started 18:35 UTC (21:35 Qatar). 18:35–18:55: RDS/EC2 start, Google app site pages (portfolio PR #7), publish, Task 4 Steps 6–8 | in progress |
+| 3 | 2026-10-13 (Qatar) | 18:35–19:29 UTC (21:35–22:29 Qatar): RDS/EC2 start, Google app site pages (portfolio PR #7) and publish, Task 4 Steps 6–8, Task 5, Task 6 (imported the Cloud files by mistake, see below), Task 7 Steps 1–2 | 54 |
 
 From session 3 on, times come from the conversation's own message timestamps (UTC), so they're exact.
 
