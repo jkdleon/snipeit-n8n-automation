@@ -215,7 +215,11 @@ Goal: run the same four workflows on n8n self-hosted next to Snipe-IT, with ever
 | 2 | 2026-10-12 | Task 3 (DNS, n8n container, Caddy, timezone) | ~15 |
 | 2 | 2026-10-12 | Task 4 Steps 1–5 (owner account, Snipe-IT credential, internal API, recreate test) | ~20 |
 
-Build minutes are estimated from timestamps in the server output (all UTC):
+| 3 | 2026-10-13 (Qatar) | Started 18:35 UTC (21:35 Qatar). 18:35–18:55: RDS/EC2 start, Google app site pages (portfolio PR #7), publish, Task 4 Steps 6–8 | in progress |
+
+From session 3 on, times come from the conversation's own message timestamps (UTC), so they're exact.
+
+Build minutes for sessions 1–2 are estimated from timestamps in the server output (all UTC):
 - **Reboot ≈ 09:10.** Caddy showed `Up 34 minutes` at the `docker compose up -d` run, and that run came right after the 09:41:44 Caddy validate.
 - **n8n's certificate was issued at 09:45:47**, ending Task 3.
 - **The force-recreated n8n container was "about a minute" old** near the end of Task 4.
