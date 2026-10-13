@@ -1,0 +1,68 @@
+{
+  "name": "04 Error handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2e56719f-d25f-499e-b288-a3697a66bec1",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "sendTo": "it-admin@example.com",
+        "subject": "=n8n workflow failed: {{ $json.workflow.name }}",
+        "message": "=Workflow: {{ $json.workflow.name }}<br> Failed step: {{ $json.execution.lastNodeExecuted }}<br> Error: {{ $json.execution.error.message }}<br> <a href=\"{{ $json.execution.url }}\">Open the failed run in n8n</a>",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Asset Automation"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "53ea92a1-4cdc-49a3-9274-875ca7b73c5b",
+      "name": "Email IT: workflow failed",
+      "webhookId": "e1ef5400-dfb5-49d9-9197-733dcca053b8",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "jkBAUMmalA27SQAf",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Email IT: workflow failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a84610c5-6e60-45aa-8227-f273ef85262b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "188c88f293414949c4fb3c22da51afea83795f9822a7ae90fbe68e738aaf1768"
+  },
+  "nodeGroups": [],
+  "id": "J6QR77Zyw8EC62Qp",
+  "tags": []
+}

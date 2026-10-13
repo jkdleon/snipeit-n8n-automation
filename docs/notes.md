@@ -203,6 +203,11 @@ Goal: run the same four workflows on n8n self-hosted next to Snipe-IT, with ever
 - **Review Focus 5, lockout drill passed:** `ADMIN_IP` set to `203.0.113.1/32` (a documentation-only address) → `403` from the PC; restored from the `cp -p` backup → `200`. Recovery if the home IP changes: SSM in (it doesn't depend on the IP), update `ADMIN_IP` in `/opt/snipeit/.env`, `docker compose up -d caddy` (the variable is read when the container is created).
 - **Tests 2a/2b from a phone on mobile data passed:** `/` → `Forbidden`, `/rest/settings` → `Forbidden`, `/webhook-test/anything` → `Forbidden`, `/webhook/does-not-exist` → n8n's own `404` "webhook … is not registered" (screenshots 37, 37b). Only `/webhook/*` reaches n8n from outside.
 - Task 4 complete.
+
+### Google credentials in n8n (Task 5, 2026-10-13)
+- `Google Drive account` and `Gmail account`: Google OAuth2 credentials using the own OAuth client. n8n showed the expected redirect URL. Sign-in went through Google's "unverified app" warning once (screenshot 38, email blurred).
+- Drive: searching inside the archive root folder returned the `00001` folder (right account, right folder). Gmail: a test message from "IT Asset Automation" arrived in the IT inbox.
+- n8n's Google credential form also offers "Allowed HTTP Request Domains" (default All) and "Custom Scopes". Both are possible hardening steps: limit the token to Google API domains, and request narrower scopes.
 - **Earlier resume point (done):** Task 4 Step 6, the `Documenso API` credential (raw token, no `Bearer`) and `GET https://app.documenso.com/api/v2/envelope?type=DOCUMENT&perPage=10` → note the envelope IDs and statuses of #2 (COMPLETED, check-in) and #3 (REJECTED). Then Step 7 (admin-IP lockout drill), Step 8 (phone tests 2a/2b), Step 9 (log).
 
 ### Google app published (2026-10-14)

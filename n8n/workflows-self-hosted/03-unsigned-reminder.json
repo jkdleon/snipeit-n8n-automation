@@ -1,0 +1,137 @@
+{
+  "name": "03 Unsigned reminder",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "131d609d-d252-4843-a8bb-5c438ad08f7a",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://app.documenso.com/api/v2/envelope?type=DOCUMENT&status=PENDING&perPage=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "ec99ddcb-27b0-45ed-b303-7c5a1af2873c",
+      "name": "Pending envelopes",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "aZJg5XnGZxLEFQGL",
+          "name": "Documenso API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const DAYS = 3;\nconst cutoff = Date.now() - DAYS * 24 * 60 * 60 * 1000;\nconst overdue = ($input.first().json.data || [])\n  .filter(e => /^(checkout|checkin):asset-\\d+:log-\\d+$/.test(e.externalId || ''))\n  .filter(e => new Date(e.createdAt).getTime() < cutoff);\nif (overdue.length === 0) return [];\nconst lines = overdue.map(e => `- ${e.title} (sent ${e.createdAt.slice(0, 10)})`).join('\\n');\nreturn [{ json: { count: overdue.length, lines } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "7ca7a2f2-952c-4564-8e11-678a0a5df21f",
+      "name": "Overdue"
+    },
+    {
+      "parameters": {
+        "sendTo": "it-admin@example.com",
+        "subject": "={{ $json.count }} asset agreement(s) unsigned for 3+ days",
+        "emailType": "text",
+        "message": "={{ $json.lines }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Asset Automation"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        0
+      ],
+      "id": "996114e0-112d-4ded-af46-b8df60899e61",
+      "name": "Email IT: unsigned",
+      "webhookId": "8a62fe4b-97c3-480a-a66e-d3463c8ea8ee",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "jkBAUMmalA27SQAf",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Pending envelopes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pending envelopes": {
+      "main": [
+        [
+          {
+            "node": "Overdue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Overdue": {
+      "main": [
+        [
+          {
+            "node": "Email IT: unsigned",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "2a301520-26cc-439a-ba09-4d58fa7d1e5c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "188c88f293414949c4fb3c22da51afea83795f9822a7ae90fbe68e738aaf1768"
+  },
+  "nodeGroups": [],
+  "id": "HHcvg3BfbB9a8pJO",
+  "tags": []
+}
