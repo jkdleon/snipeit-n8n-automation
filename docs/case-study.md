@@ -1,6 +1,6 @@
 # Automating IT Asset Agreements with Snipe-IT, n8n and Documenso on AWS
 
-> **Status: in progress (October 2026).** The infrastructure (built by hand in the AWS console) and the signing automation on n8n Cloud are finished and tested; that's what this write-up covers so far. **In progress now:** rebuilding the automation on self-hosted n8n next to Snipe-IT, with every system on one business timezone, to compare the two deployments. **Still to come:** the comparison, and rebuilding the infrastructure with Terraform.
+> **Status: in progress (October 2026).** Done and tested: the infrastructure (built by hand in the AWS console), the signing automation on n8n Cloud secured with mTLS, and a rebuild on self-hosted n8n with every system on one business timezone, compared side by side below. **Still to come:** rebuilding the infrastructure with Terraform.
 
 ## In short
 
@@ -212,23 +212,69 @@ To test the error handler, I made the harmless reminder workflow fail on purpose
 - **The webhook secret in the logs.** Documenso sends its secret as a request header, so n8n records it in every execution's data. After it ended up pasted in a chat, I rotated it and confirmed the old value was refused.
 - **A Google Drive folder n8n couldn't see.** I had created the root folder in a different Google account from the one connected to n8n.
 
+## Rebuilding with self-hosted n8n, and comparing the two
+
+Once the n8n Cloud version worked, I rebuilt the same four workflows on **n8n self-hosted**, as a third container next to Snipe-IT on the same server, and compared the two deployments. The workflows themselves barely changed: a script swapped the nine Snipe-IT URLs from the mTLS hostname to the internal Docker address (`http://app/api/v1`) and removed the client-certificate settings.
+
+```mermaid
+flowchart LR
+  subgraph ec2["EC2 t3.small (+2 GiB swap)"]
+    caddy["Caddy"] --> app["Snipe-IT"]
+    caddy --> n8n["n8n<br/>(SQLite volume)"]
+    n8n -->|"http://app/api<br/>bot token, internal"| app
+  end
+  app -->|TLS| rds[("RDS MariaDB")]
+  admin(["IT admin"]) -->|"UI + n8n editor<br/>admin IP only"| caddy
+  doc["Documenso"] -->|"/webhook/* only<br/>+ shared secret"| caddy
+  app -.->|"webhook via public URL"| caddy
+  n8n --> doc
+  n8n --> google["Google Drive / Gmail<br/>(own OAuth app)"]
+```
+
+Decisions for the rebuild: keep the t3.small and add 2 GiB of swap (measured before deciding), SQLite for n8n's data, one hostname (`n8n.jkdeleon.net`) where only `/webhook/*` is public and the editor is limited to my IP, a pinned n8n version, and **Asia/Qatar as the one business timezone** across Snipe-IT, n8n, the agreement dates and Documenso's signing times.
+
+| | n8n Cloud + mTLS | Self-hosted n8n |
+|---|---|---|
+| **Setup effort** | Private CA, client certificate, a second hostname with mTLS in Caddy, DNS record, and n8n's built-in Google sign-in. Not tracked in minutes; it was the bulk of a multi-day build | About 4 hours of hands-on work across five sessions, timed from the session logs. That includes two detours: Google's app-publishing requirements and one wrong import |
+| **Public attack surface** | Snipe-IT UI (admin IP only) and the API hostname (mTLS + token) | Snipe-IT UI and the n8n editor (both admin IP only), and **only `/webhook/*`** on n8n: WF1 verifies every event against Snipe-IT's log, and WF2 requires a shared secret. The API hostname is gone |
+| **Who can reach Snipe-IT's API** | Anyone holding the client certificate **and** the bot token, from anywhere | Only the n8n container, over the Docker network. The audit trail shows it: n8n Cloud's calls were logged from `4.184.78.244` (a public IP shared by n8n Cloud customers), the self-hosted ones from `172.18.0.3` |
+| **Blast radius if n8n is compromised** | The bot token's permissions only | The bot token, plus a foothold on the server that also runs Snipe-IT. Self-hosting trades an external dependency for a shared host |
+| **Operations** | Yearly client-certificate renewal and custody of the CA key. n8n upgrades and backups are n8n's job | n8n upgrades (version pinned; n8n already warns that its built-in task-runner mode is deprecated), backups (EBS snapshot + the offline encryption key), and my own Google OAuth app, which needed a home page and a privacy policy before Google would let it out of "Testing" (otherwise logins expire every 7 days) |
+| **Cost** | n8n Cloud Starter: €20/month billed annually (2,500 runs/month), checked on n8n's pricing page in October 2026 | **$0 extra compute.** Measured: 831 MiB of 1.9 GiB used after a real document, n8n at 419 MiB, swap never touched (screenshots 33 and 34) |
+| **Fit with Terraform** | Server config fits, but the CA and the n8n Cloud setup live outside Terraform | Everything except the Google OAuth app lives on one host: compose file, Caddyfile, `n8n.env` and the swap file all go into user-data |
+
+What the rebuild proved, with one real document (#4) and replayed events instead of new ones:
+
+- **The timezone fix holds everywhere.** The agreement date comes from Snipe-IT's own log entry instead of "now in UTC", the archive file name from Documenso's completion time, and Documenso stamps signing times in Qatar time. A pinned log entry at 00:15 Qatar time (21:15 UTC the day before) produced the right date. Records created before the switch still show the old timezone's clock time, which is exactly why the timezone has to be set before go-live.
+- **Duplicates, forgeries and bad secrets are all stopped.** The real checkout message re-sent stopped at the duplicate check; a forged checkout stopped at verification; a wrong or missing Documenso secret got `403` before the workflow started.
+- **The error handler caught a real failure.** A replay with malformed test data failed in production, and WF4 emailed IT the workflow and the failing step, unprompted.
+- **Every secret n8n Cloud held was replaced or revoked**: the webhook secret, the bot token (created from Laravel's console on the server, without logging in as the bot), the Documenso token, and n8n Cloud's Google access.
+
+![The self-hosted run of document #4: every node green](screenshots/43-selfhosted-wf1-production-run.png)
+
+![Signed agreement #4: issue date and both signing times in Qatar time](screenshots/45-signed-pdf-qatar-times.png)
+
+**Recommendation for the Terraform phase: codify the self-hosted version.** It removes the internet-facing API entirely, costs nothing extra on the existing server, puts every component under one definition, and leaves only the Google OAuth app as a manual step. The mTLS design stays in this write-up as the answer for when a company has to use a SaaS automation tool: it's the right pattern for that constraint, just not the cheapest one when self-hosting is allowed.
+
 ## Known limitations
 
-- **Timezones.** n8n Cloud runs on UTC, Documenso stamps signing times in the signer's browser timezone, and Snipe-IT uses its own setting. A return processed early in the morning got the previous day's date. Next step: one business timezone set explicitly everywhere.
+- **Timezones (fixed in the self-hosted version).** n8n Cloud ran on UTC and Documenso stamped signing times in each signer's browser timezone, so a return processed early in the morning got the previous day's date. The rebuild sets Asia/Qatar explicitly everywhere. Records created before the switch still display the old clock time, because Snipe-IT stores times without a timezone.
+- **A checkout made while n8n is down gets no agreement.** Snipe-IT sends its webhook once, in the background, with no retry and no alert; I confirmed the failure by stopping n8n. A company would add a daily reconciliation (Snipe-IT checkouts against Documenso's documents) and uptime monitoring on n8n.
+- **The Google OAuth app is unverified.** That's fine for a single-user app, but signing in shows Google's "unverified app" warning, and a multi-user setup would need Google's verification.
 - **Snipe-IT's webhook can't be authenticated.** The workflow compensates by verifying every event through the API.
 - **The event type is read from the webhook's human-readable text** ("Asset checked out"), which changes with Snipe-IT's language setting. The API check catches a misread, but the parsing is still brittle.
 - **Volume.** Documenso's free plan allows 5 documents a month, so real use needs a paid plan or self-hosted Documenso. A bulk onboarding day (dozens of laptops at once) would also need batching and a calmer reminder email.
-- **The mTLS setup needs care.** The client certificate expires yearly and the private CA has to be kept safe. The self-hosted comparison will show whether that's worth it compared with running n8n inside the network.
 - **Free-plan emails come from a shared domain.** Gmail marks Documenso's free-plan emails as suspicious. A company would send from its own domain (SPF/DKIM) so employees don't learn to ignore warnings on signing emails.
-- **n8n keeps every run's data**, including webhook headers. For a lab I left the defaults, since the instance gets deleted. In production I'd stop saving successful runs of the two workflows that handle secrets.
+- **n8n keeps run data, including webhook headers** (and so the Documenso secret). The self-hosted version deletes run history after 14 days. In production I'd also stop saving successful runs of the two workflows that handle secrets.
 - **Snipe-IT runs a pre-release build** (`latest` turned out to track the development branch). The Terraform version will pin a stable release.
 
 ## What's next
 
-1. Align all systems to one business timezone.
-2. Test Snipe-IT's built-in acceptance and confirm the comparison above.
-3. Rebuild the automation with **self-hosted n8n** next to Snipe-IT and compare the two deployments: setup effort, what's exposed to the internet, operations, cost, and how well each maps to Terraform.
-4. Tear down the hand-built infrastructure and rebuild it with **Terraform**.
-5. Final architecture diagram and a short demo recording.
+1. ~~Align all systems to one business timezone.~~ Done in the self-hosted rebuild.
+2. ~~Rebuild with self-hosted n8n and compare the two deployments.~~ Done, see above.
+3. Test Snipe-IT's built-in acceptance and confirm the comparison above.
+4. Tear down the hand-built infrastructure and rebuild the **self-hosted version** with **Terraform**: pinned Snipe-IT and n8n versions, user-data for Docker, swap and the config files, and automated EBS snapshots.
+5. Add a daily reconciliation so a checkout made during an n8n outage can't go unnoticed.
+6. Final architecture diagram and a short demo recording.
 
 The full build log, including commands and every dead end, is in [`docs/notes.md`](notes.md).
