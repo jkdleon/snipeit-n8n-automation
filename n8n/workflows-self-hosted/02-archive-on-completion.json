@@ -11,15 +11,15 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -64,
-        80
+        -480,
+        336
       ],
-      "id": "eb637e54-e91b-43c5-a1b3-bf1015c78d06",
+      "id": "534619fe-6d7a-4b2a-8686-a74d5cedc55e",
       "name": "Webhook",
       "webhookId": "61756338-cfa3-441a-a395-a5aa16840262",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "M8PJ6I1omvFF6dVJ",
+          "id": "opNKgn9ueB67ZL13",
           "name": "Documenso webhook secret"
         }
       }
@@ -84,23 +84,23 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        144,
-        80
+        -272,
+        336
       ],
-      "id": "81311cb4-f3d3-4d01-a8be-8e7ea8f09e67",
+      "id": "6186ae9b-ce39-40de-a46e-e98948624fbe",
       "name": "Event type"
     },
     {
       "parameters": {
-        "jsCode": "const p = $input.first().json.body.payload;\nconst m = /^(checkout|checkin):asset-(\\d+):log-(\\d+)$/.exec(p.externalId || '');\nif (!m) return [];\nreturn [{ json: {\n  type: m[1],\n  assetId: Number(m[2]),\n  envelopeId: p.envelopeId,\n  date: new Date().toISOString().slice(0, 10),\n} }];"
+        "jsCode": "const p = $input.first().json.body.payload;\nconst m = /^(checkout|checkin):asset-(\\d+):log-(\\d+)$/.exec(p.externalId || '');\nif (!m) return [];\n// Name the archive by when the document was completed, in the business timezone.\nconst done = p.completedAt ? DateTime.fromISO(p.completedAt) : $now;\nreturn [{ json: {\n  type: m[1],\n  assetId: Number(m[2]),\n  envelopeId: p.envelopeId,\n  date: done.setZone('Asia/Qatar').toISODate(),\n} }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        416,
-        -256
+        0,
+        0
       ],
-      "id": "ddf033a7-fb89-4513-adf7-8958455fc60c",
+      "id": "2b3ee98b-54e7-42d6-9f23-79e141aaba58",
       "name": "Parse externalId"
     },
     {
@@ -113,14 +113,14 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
-        656,
-        -256
+        240,
+        0
       ],
-      "id": "e80b5be8-9036-40ac-83ae-f7d76abbe3cd",
+      "id": "b04aa896-2250-4129-934a-3aea0aa894bd",
       "name": "Get envelope",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "aZJg5XnGZxLEFQGL",
+          "id": "zsFa4dl6jag2llBW",
           "name": "Documenso API"
         }
       }
@@ -141,14 +141,14 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
-        896,
-        -256
+        480,
+        0
       ],
-      "id": "58099e63-5c67-4a2e-a85c-0df696e87c39",
+      "id": "bc852b32-7fb3-4ef7-902d-640ca4361158",
       "name": "Download signed PDF",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "aZJg5XnGZxLEFQGL",
+          "id": "zsFa4dl6jag2llBW",
           "name": "Documenso API"
         }
       }
@@ -160,10 +160,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        400,
-        -32
+        -16,
+        224
       ],
-      "id": "b0a3475e-1cfc-469f-bd6e-a545bdfa8612",
+      "id": "32a9b435-5c1f-4e9f-b415-d2d431a8ec40",
       "name": "File name"
     },
     {
@@ -192,14 +192,14 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
-        608,
-        -32
+        192,
+        224
       ],
-      "id": "81f56da2-d7ce-4759-94d1-a5a03dc058e6",
+      "id": "be414107-4383-46a4-9a49-7facc088d54d",
       "name": "Upload to Snipe-IT",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "jcgBAcpWqmxk2SN8",
+          "id": "ylg9yqojWuRPXVkW",
           "name": "Snipe-IT n8n Token"
         }
       }
@@ -221,15 +221,15 @@
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
       "position": [
-        832,
-        -32
+        416,
+        224
       ],
-      "id": "3451d1b9-9456-4d3b-88f0-35762ec30631",
+      "id": "f9143224-f7a4-4e95-824d-3064d49d74d2",
       "name": "Find asset folder",
       "alwaysOutputData": true,
       "credentials": {
         "googleDriveOAuth2Api": {
-          "id": "MSuNIz00Mk10ZUAO",
+          "id": "TJi56NwmEnhrk5Y1",
           "name": "Google Drive account"
         }
       }
@@ -262,10 +262,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1008,
-        -32
+        592,
+        224
       ],
-      "id": "0cecf2b3-7c9c-4990-bc3e-753c906f8686",
+      "id": "aaaaa10b-3e6d-4197-a2bc-b5b037ab9e2c",
       "name": "Folder exists?"
     },
     {
@@ -287,14 +287,14 @@
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
       "position": [
-        1264,
-        80
+        848,
+        336
       ],
-      "id": "80f9c621-e3bb-408c-b9db-40fcf0ab200d",
+      "id": "46844a5a-7702-44ce-9b4a-8bd6096e7531",
       "name": "Create asset folder",
       "credentials": {
         "googleDriveOAuth2Api": {
-          "id": "MSuNIz00Mk10ZUAO",
+          "id": "TJi56NwmEnhrk5Y1",
           "name": "Google Drive account"
         }
       }
@@ -306,10 +306,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1440,
-        -48
+        1024,
+        208
       ],
-      "id": "17e8db6f-f557-49e5-ab92-b2a0d288dea2",
+      "id": "3ae9ba46-5018-482f-8f1e-d987e85d5b88",
       "name": "Attach PDF"
     },
     {
@@ -322,14 +322,14 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
-        1120,
-        -256
+        704,
+        0
       ],
-      "id": "9a064cca-ed30-4ff8-8131-2c0c6cee23ad",
+      "id": "e24e0267-28f4-4618-b364-b34f1ae6ccd7",
       "name": "Get asset (tag)",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "jcgBAcpWqmxk2SN8",
+          "id": "ylg9yqojWuRPXVkW",
           "name": "Snipe-IT n8n Token"
         }
       }
@@ -352,14 +352,14 @@
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
       "position": [
-        1664,
-        -48
+        1248,
+        208
       ],
-      "id": "e984aaa7-8b24-440f-9133-dea4e486aab9",
+      "id": "39ef7ede-6998-4132-bff8-b97be7d8233d",
       "name": "Upload to Drive",
       "credentials": {
         "googleDriveOAuth2Api": {
-          "id": "MSuNIz00Mk10ZUAO",
+          "id": "TJi56NwmEnhrk5Y1",
           "name": "Google Drive account"
         }
       }
@@ -384,14 +384,14 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
-        1888,
-        -48
+        1472,
+        208
       ],
-      "id": "445ad331-db4d-400e-a68e-31f1a410dbe6",
+      "id": "4b158553-53c8-4a2b-bf1a-6598ca28e190",
       "name": "Note: archived",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "jcgBAcpWqmxk2SN8",
+          "id": "ylg9yqojWuRPXVkW",
           "name": "Snipe-IT n8n Token"
         }
       }
@@ -403,10 +403,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        400,
-        96
+        -16,
+        352
       ],
-      "id": "343b2fbf-1f42-4fd2-88ce-028ee2417731",
+      "id": "d9342961-63a2-4e66-8f19-049f283411d2",
       "name": "Rejection details"
     },
     {
@@ -422,15 +422,15 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        592,
-        224
+        176,
+        480
       ],
-      "id": "30c65f5e-acda-4111-a2b4-ca30a57ce285",
+      "id": "92c64581-e2bb-4ca1-9064-4b5d6aef1719",
       "name": "Email IT: rejected",
       "webhookId": "61f97e93-b1ec-467f-ba9a-a2697703766f",
       "credentials": {
         "gmailOAuth2": {
-          "id": "jkBAUMmalA27SQAf",
+          "id": "llcAgyZoVb9daj21",
           "name": "Gmail account"
         }
       }
@@ -455,14 +455,14 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
-        816,
-        224
+        400,
+        480
       ],
-      "id": "74587615-1653-4660-970b-b08c9a5e99f8",
+      "id": "aca4616d-ad7c-48ed-bb13-fc1166b16dc8",
       "name": "Note: rejected",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "jcgBAcpWqmxk2SN8",
+          "id": "ylg9yqojWuRPXVkW",
           "name": "Snipe-IT n8n Token"
         }
       }
@@ -654,15 +654,16 @@
     "executionOrder": "v1",
     "binaryMode": "separate",
     "timeSavedMode": "fixed",
+    "errorWorkflow": "3cBXwby4hs4CDCOR",
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "c72324f1-16fb-481c-8d78-6ec8802a4a83",
+  "versionId": "59e26e04-dc8a-4a76-8d24-feb6671bab1a",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "188c88f293414949c4fb3c22da51afea83795f9822a7ae90fbe68e738aaf1768"
+    "instanceId": "98794da4a4c69244a18d538cbab99bb11cd3e439d83ad1e393cba7414c18e92a"
   },
   "nodeGroups": [],
-  "id": "XRGgp5pZFvLJ1DcM",
+  "id": "6Rrru6VtsBCXn9Zx",
   "tags": []
 }

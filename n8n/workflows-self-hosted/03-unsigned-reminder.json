@@ -17,7 +17,7 @@
         0,
         0
       ],
-      "id": "131d609d-d252-4843-a8bb-5c438ad08f7a",
+      "id": "c25812a6-42dc-497f-9739-2040a027bafc",
       "name": "Schedule Trigger"
     },
     {
@@ -33,18 +33,18 @@
         224,
         0
       ],
-      "id": "ec99ddcb-27b0-45ed-b303-7c5a1af2873c",
+      "id": "75ec2b6f-06ad-474e-a6c7-4b72bc1a4efc",
       "name": "Pending envelopes",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "aZJg5XnGZxLEFQGL",
+          "id": "zsFa4dl6jag2llBW",
           "name": "Documenso API"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "const DAYS = 3;\nconst cutoff = Date.now() - DAYS * 24 * 60 * 60 * 1000;\nconst overdue = ($input.first().json.data || [])\n  .filter(e => /^(checkout|checkin):asset-\\d+:log-\\d+$/.test(e.externalId || ''))\n  .filter(e => new Date(e.createdAt).getTime() < cutoff);\nif (overdue.length === 0) return [];\nconst lines = overdue.map(e => `- ${e.title} (sent ${e.createdAt.slice(0, 10)})`).join('\\n');\nreturn [{ json: { count: overdue.length, lines } }];"
+        "jsCode": "const DAYS = 3;\nconst cutoff = Date.now() - DAYS * 24 * 60 * 60 * 1000;\nconst lines = overdue.map(e => `- ${e.title} (sent ${DateTime.fromISO(e.createdAt).setZone('Asia/Qatar').toISODate()})`).join('\\n');\n  .filter(e => new Date(e.createdAt).getTime() < cutoff);\nif (overdue.length === 0) return [];\nconst lines = overdue.map(e => `- ${e.title} (sent ${e.createdAt.slice(0, 10)})`).join('\\n');\nreturn [{ json: { count: overdue.length, lines } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -52,7 +52,7 @@
         448,
         0
       ],
-      "id": "7ca7a2f2-952c-4564-8e11-678a0a5df21f",
+      "id": "996423cd-3107-4a71-8d89-a8f2615c8928",
       "name": "Overdue"
     },
     {
@@ -72,12 +72,12 @@
         672,
         0
       ],
-      "id": "996114e0-112d-4ded-af46-b8df60899e61",
+      "id": "c940937f-b69a-4467-a9a1-a21ebdcecbc7",
       "name": "Email IT: unsigned",
       "webhookId": "8a62fe4b-97c3-480a-a66e-d3463c8ea8ee",
       "credentials": {
         "gmailOAuth2": {
-          "id": "jkBAUMmalA27SQAf",
+          "id": "llcAgyZoVb9daj21",
           "name": "Gmail account"
         }
       }
@@ -123,15 +123,16 @@
     "executionOrder": "v1",
     "binaryMode": "separate",
     "timeSavedMode": "fixed",
+    "errorWorkflow": "3cBXwby4hs4CDCOR",
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "2a301520-26cc-439a-ba09-4d58fa7d1e5c",
+  "versionId": "c4167d51-cc24-4f98-8c4c-c86833c2af34",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "188c88f293414949c4fb3c22da51afea83795f9822a7ae90fbe68e738aaf1768"
+    "instanceId": "98794da4a4c69244a18d538cbab99bb11cd3e439d83ad1e393cba7414c18e92a"
   },
   "nodeGroups": [],
-  "id": "HHcvg3BfbB9a8pJO",
+  "id": "gH0J5Jver6Eluekw",
   "tags": []
 }

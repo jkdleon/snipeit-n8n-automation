@@ -9,7 +9,7 @@
         0,
         0
       ],
-      "id": "2e56719f-d25f-499e-b288-a3697a66bec1",
+      "id": "20331ff5-e546-4806-9450-d984af43eabc",
       "name": "Error Trigger"
     },
     {
@@ -28,12 +28,12 @@
         224,
         0
       ],
-      "id": "53ea92a1-4cdc-49a3-9274-875ca7b73c5b",
+      "id": "c1ae2df4-ba0d-4190-8ccf-21bc3021550f",
       "name": "Email IT: workflow failed",
       "webhookId": "e1ef5400-dfb5-49d9-9197-733dcca053b8",
       "credentials": {
         "gmailOAuth2": {
-          "id": "jkBAUMmalA27SQAf",
+          "id": "llcAgyZoVb9daj21",
           "name": "Gmail account"
         }
       }
@@ -57,12 +57,12 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "a84610c5-6e60-45aa-8227-f273ef85262b",
+  "versionId": "5aa2a347-53f8-47c0-8845-67dc79b17179",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "188c88f293414949c4fb3c22da51afea83795f9822a7ae90fbe68e738aaf1768"
+    "instanceId": "98794da4a4c69244a18d538cbab99bb11cd3e439d83ad1e393cba7414c18e92a"
   },
   "nodeGroups": [],
-  "id": "J6QR77Zyw8EC62Qp",
+  "id": "3cBXwby4hs4CDCOR",
   "tags": []
 }
