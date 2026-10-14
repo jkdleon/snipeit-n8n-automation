@@ -4,21 +4,6 @@ snipeit.jkdeleon.net {
 	reverse_proxy app:80
 }
 
-snipeit-api.jkdeleon.net {
-	tls {
-		client_auth {
-			mode require_and_verify
-			trust_pool file /etc/caddy/ca/n8n-ca.crt
-		}
-	}
-	handle /api/* {
-		reverse_proxy app:80
-	}
-	handle {
-		respond "Not Found" 404
-	}
-}
-
 n8n.jkdeleon.net {
 	handle /webhook/* {
 		reverse_proxy n8n:5678

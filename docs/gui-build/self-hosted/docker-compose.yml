@@ -26,7 +26,6 @@ services:
       ADMIN_IP: ${ADMIN_IP}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./ca:/etc/caddy/ca:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
