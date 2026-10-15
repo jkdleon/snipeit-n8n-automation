@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Snipe-IT agreement automation: self-hosted architecture</title>
+<style>
+  html, body { margin: 0; background: #ffffff; }
+  svg { display: block; font-family: "Segoe UI", Arial, sans-serif; }
+  .title { font-size: 34px; font-weight: 700; fill: #0f172a; }
+  .subtitle { font-size: 19px; fill: #475569; }
+  .zone { font-size: 16px; font-weight: 600; fill: #92400e; letter-spacing: 0.04em; }
+  .host { font-size: 16px; font-weight: 600; fill: #334155; letter-spacing: 0.04em; }
+  .node { fill: #ffffff; stroke: #334155; stroke-width: 2; }
+  .ext { fill: #f8fafc; stroke: #64748b; stroke-width: 2; }
+  .name { font-size: 22px; font-weight: 700; fill: #0f172a; text-anchor: middle; }
+  .detail { font-size: 15px; fill: #475569; text-anchor: middle; }
+  .label { font-size: 15px; fill: #0f172a; }
+  .label-pub { font-size: 15px; fill: #0369a1; font-weight: 600; }
+  .label-int { font-size: 15px; fill: #047857; font-weight: 600; }
+  .edge { stroke: #334155; stroke-width: 2.2; fill: none; }
+  .edge-pub { stroke: #0284c7; stroke-width: 2.6; fill: none; }
+  .edge-int { stroke: #059669; stroke-width: 2.6; fill: none; }
+  .dash { stroke-dasharray: 7 6; }
+  .badge { fill: #f1f5f9; stroke: #cbd5e1; stroke-width: 1.5; }
+  .badge-text { font-size: 17px; font-weight: 600; fill: #0f172a; text-anchor: middle; }
+</style>
+</head>
+<body>
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+    <marker id="ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0284c7"/></marker>
+    <marker id="ai" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+  </defs>
+
+  <text class="title" x="60" y="70">Snipe-IT asset agreement automation</text>
+  <text class="subtitle" x="60" y="104">Self-hosted n8n next to Snipe-IT on AWS: checkout → e-signature → signed PDF archived on the asset and in Google Drive</text>
+
+  <!-- AWS zone -->
+  <rect x="300" y="150" width="860" height="600" rx="16" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/>
+  <text class="zone" x="324" y="182">AWS us-east-1</text>
+
+  <!-- EC2 host -->
+  <rect x="330" y="200" width="560" height="520" rx="14" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+  <text class="host" x="354" y="232">EC2 t3.small · Docker Compose · one host</text>
+
+  <!-- RDS -->
+  <rect x="955" y="250" width="180" height="110" rx="14" class="node"/>
+  <text class="name" x="1045" y="295">RDS MariaDB</text>
+  <text class="detail" x="1045" y="322">private subnet</text>
+
+  <!-- Caddy -->
+  <rect x="360" y="400" width="190" height="100" rx="12" class="node"/>
+  <text class="name" x="455" y="443">Caddy</text>
+  <text class="detail" x="455" y="470">HTTPS + access rules</text>
+
+  <!-- Snipe-IT -->
+  <rect x="660" y="260" width="200" height="100" rx="12" class="node"/>
+  <text class="name" x="760" y="303">Snipe-IT</text>
+  <text class="detail" x="760" y="330">system of record</text>
+
+  <!-- n8n -->
+  <rect x="660" y="580" width="200" height="100" rx="12" class="node"/>
+  <text class="name" x="760" y="623">n8n</text>
+  <text class="detail" x="760" y="650">4 workflows · SQLite</text>
+
+  <!-- IT admin -->
+  <rect x="60" y="400" width="180" height="100" rx="50" class="ext"/>
+  <text class="name" x="150" y="443">IT admin</text>
+  <text class="detail" x="150" y="470">checks devices out/in</text>
+
+  <!-- Externals -->
+  <rect x="1240" y="470" width="300" height="100" rx="12" class="ext"/>
+  <text class="name" x="1390" y="513">Documenso</text>
+  <text class="detail" x="1390" y="540">employee signs, then IT</text>
+  <rect x="1240" y="640" width="300" height="100" rx="12" class="ext"/>
+  <text class="name" x="1390" y="683">Google Drive + Gmail</text>
+  <text class="detail" x="1390" y="710">backup copy · IT alerts</text>
+
+  <!-- admin -> caddy (public, admin IP only) -->
+  <path class="edge-pub" d="M240,450 L356,450" marker-end="url(#ap)"/>
+  <text class="label-pub" x="252" y="425">admin IP only</text>
+
+  <!-- caddy -> snipe-it (UI) -->
+  <path class="edge" d="M500,400 C500,330 560,310 656,310" marker-end="url(#a)"/>
+  <text class="label" x="585" y="300">UI</text>
+
+  <!-- caddy -> n8n (/webhook/* public) -->
+  <path class="edge-pub" d="M500,500 C500,580 560,630 656,630" marker-end="url(#ap)"/>
+  <text class="label-pub" x="352" y="556">only /webhook/*</text>
+  <text class="label-pub" x="352" y="576">is public</text>
+
+  <!-- n8n -> snipe-it (internal API) -->
+  <path class="edge-int" d="M800,578 L800,364" marker-end="url(#ai)"/>
+  <text class="label-int" x="812" y="460">API over the</text>
+  <text class="label-int" x="812" y="480">Docker network</text>
+  <text class="label-int" x="812" y="500">(least-privilege token)</text>
+
+  <!-- snipe-it webhook -> n8n (via caddy) -->
+  <path class="edge dash" d="M720,362 L720,576" marker-end="url(#a)"/>
+  <text class="label" x="585" y="455">checkout</text>
+  <text class="label" x="585" y="475">webhook</text>
+
+  <!-- snipe-it -> rds -->
+  <path class="edge" d="M860,305 L951,305" marker-end="url(#a)"/>
+  <text class="label" x="890" y="292">TLS</text>
+
+  <!-- n8n <-> documenso -->
+  <path class="edge" d="M860,605 C1010,605 1090,515 1236,515" marker-end="url(#a)"/>
+  <text class="label" x="1098" y="498">send agreement</text>
+  <path class="edge-pub dash" d="M1240,545 C1110,545 1030,640 864,640" marker-end="url(#ap)"/>
+  <text class="label-pub" x="1095" y="612">signed / rejected</text>
+  <text class="label-pub" x="1095" y="632">+ shared secret</text>
+
+  <!-- n8n -> google -->
+  <path class="edge" d="M860,665 C1000,700 1100,690 1236,690" marker-end="url(#a)"/>
+  <text class="label" x="930" y="732">archive PDF, alerts</text>
+
+  <!-- badges -->
+  <rect x="60" y="790" width="350" height="60" rx="30" class="badge"/>
+  <text class="badge-text" x="235" y="827">API calls never leave the host</text>
+  <rect x="430" y="790" width="350" height="60" rx="30" class="badge"/>
+  <text class="badge-text" x="605" y="827">Webhooks verified vs. Snipe-IT</text>
+  <rect x="800" y="790" width="350" height="60" rx="30" class="badge"/>
+  <text class="badge-text" x="975" y="827">One timezone end to end</text>
+  <rect x="1170" y="790" width="370" height="60" rx="30" class="badge"/>
+  <text class="badge-text" x="1355" y="827">$0 extra compute (measured)</text>
+</svg>
+</body>
+</html>

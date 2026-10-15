@@ -216,20 +216,7 @@ To test the error handler, I made the harmless reminder workflow fail on purpose
 
 Once the n8n Cloud version worked, I rebuilt the same four workflows on **n8n self-hosted**, as a third container next to Snipe-IT on the same server, and compared the two deployments. The workflows themselves barely changed: a script swapped the nine Snipe-IT URLs from the mTLS hostname to the internal Docker address (`http://app/api/v1`) and removed the client-certificate settings.
 
-```mermaid
-flowchart LR
-  subgraph ec2["EC2 t3.small (+2 GiB swap)"]
-    caddy["Caddy"] --> app["Snipe-IT"]
-    caddy --> n8n["n8n<br/>(SQLite volume)"]
-    n8n -->|"http://app/api<br/>bot token, internal"| app
-  end
-  app -->|TLS| rds[("RDS MariaDB")]
-  admin(["IT admin"]) -->|"UI + n8n editor<br/>admin IP only"| caddy
-  doc["Documenso"] -->|"/webhook/* only<br/>+ shared secret"| caddy
-  app -.->|"webhook via public URL"| caddy
-  n8n --> doc
-  n8n --> google["Google Drive / Gmail<br/>(own OAuth app)"]
-```
+![Self-hosted architecture: n8n next to Snipe-IT on one EC2 host; only /webhook/* is public](diagrams/architecture-self-hosted.png)
 
 Decisions for the rebuild: keep the t3.small and add 2 GiB of swap (measured before deciding), SQLite for n8n's data, one hostname (`n8n.jkdeleon.net`) where only `/webhook/*` is public and the editor is limited to my IP, a pinned n8n version, and **Asia/Qatar as the one business timezone** across Snipe-IT, n8n, the agreement dates and Documenso's signing times.
 
